@@ -19,23 +19,6 @@ def add_hash_key(c):
 # hashy hashy time
 def hash_sql_table(c):
     c.execute('SELECT * FROM florida')
-    table = c.fetchall()
-    for i in range(len(table)):
-        pre_image = str(table[i][1]) + str(table[i][2]) + str(table[i][3])
-        sha256 = hashlib.sha256()
-        sha256.update(pre_image.encode('utf-8'))
-        hashie = sha256.hexdigest()
-        print(hashie)
-
-        #c.execute("""
-        #    UPDATE florida
-        #    SET hash = str(hashie)
-        #    WHERE rowid = i;
-        #          """) # THIS DOESN'T QUITE WORK
-        # add this key to the table?
-        # can i do this for a million things?
-def refresh_hashes(c):
-    c.execute('SELECT * FROM florida')
     rows = c.fetchall()
     hash_list = []
     for row in rows:
@@ -48,6 +31,8 @@ def refresh_hashes(c):
     # Update the "hash" column with values from hash_list
     for i, hash_value in enumerate(hash_list):
         c.execute('UPDATE florida SET hash = ? WHERE rowid = ?', (hash_value, i+1))
+    print("Successfully hashed SQL table.")
+
 
 def get_column_names(cursor, table_name):
     cursor.execute(f'PRAGMA table_info({table_name})')
@@ -60,7 +45,6 @@ connection = sqlite3.connect('wyly_db')
 c = connection.cursor()
         
 hash_sql_table(c)
-refresh_hashes(c)
 
 # commit changes to db
 connection.commit()
