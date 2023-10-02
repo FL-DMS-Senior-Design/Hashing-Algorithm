@@ -21,7 +21,7 @@ def hash_sql_table(c):
     c.execute('SELECT * FROM florida')
     table = c.fetchall()
     for i in range(len(table)):
-        pre_image = str(table[i][0]) + str(table[i][1]) + str(table[i][2])
+        pre_image = str(table[i][1]) + str(table[i][2]) + str(table[i][3])
         sha256 = hashlib.sha256()
         sha256.update(pre_image.encode('utf-8'))
         hashie = sha256.hexdigest()
@@ -37,13 +37,22 @@ def hash_sql_table(c):
 def refresh_hashes(c):
     c.execute('SELECT * FROM florida')
     rows = c.fetchall()
-
+    hash_list = []
     for row in rows:
         pre_image = str(row[1]) + str(row[2]) + str(row[3])
         sha256 = hashlib.sha256()
         sha256.update(pre_image.encode('utf-8'))
         hashie = sha256.hexdigest()
-        c.execute('UPDATE your_table SET hash_column = ? WHERE id = ?', (hashie, row[0]))
+        hash_list.append(hashie)
+
+    # Update the "hash" column with values from hash_list
+    for i, hash_value in enumerate(hash_list):
+        c.execute('UPDATE florida SET hash = ? WHERE rowid = ?', (hash_value, i+1))
+
+def get_column_names(cursor, table_name):
+    cursor.execute(f'PRAGMA table_info({table_name})')
+    column_info = cursor.fetchall()
+    return [column[1] for column in column_info]
 
 ## MAIN CODE ##
 connection = sqlite3.connect('wyly_db')
@@ -52,3 +61,7 @@ c = connection.cursor()
         
 hash_sql_table(c)
 refresh_hashes(c)
+
+# commit changes to db
+connection.commit()
+connection.close()
