@@ -1,6 +1,7 @@
 import sqlite3
 import pandas as pd
 import hashlib
+import numpy as np
 
 
 def read_excel_to_sql(connection):
@@ -39,13 +40,21 @@ def get_column_names(cursor, table_name):
     column_info = cursor.fetchall()
     return [column[1] for column in column_info]
 
+def num_collisions(list_l):
+    length = len(list_l[4])
+    num_unique = len(np.unique(list_l[4]))
+    return (length - num_unique)
+    
+
 ## MAIN CODE ##
 connection = sqlite3.connect('wyly_db')
 # create a cursor 
 c = connection.cursor()
-        
 hash_sql_table(c)
 
+# Print the number of collisions (LENGTH OF HASH COL of TABLE - LENGTH OF UNIQUE VALUES OF HASH COL)
+c.execute("SELECT * FROM florida")
+print("Collision Count: " + str(num_collisions(list(c.fetchall()))))
 # commit changes to db
 connection.commit()
 connection.close()
