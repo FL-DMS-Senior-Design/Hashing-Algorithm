@@ -4,9 +4,9 @@ import hashlib
 import numpy as np
 
 
-def read_excel_to_sql(connection, table_name):
+def read_excel_to_sql(connection, table_name, excel_file_path):
     # note that you need to 'pip install openpyxl' to continue
-    df = pd.read_excel('Example Databases.xlsx', sheet_name='Format 1') # this may need to change
+    df = pd.read_excel(excel_file_path, sheet_name='Format 1') # this may need to change
     print(df)
     df.to_sql(table_name, connection, if_exists="replace")
 
@@ -40,11 +40,12 @@ def get_column_names(cursor, table_name):
     column_info = cursor.fetchall()
     return [column[1] for column in column_info]
 
-def num_collisions(list_l): # i want to change this to take a connection and a table name
-    length = len(list_l[4])
-    num_unique = len(np.unique(list_l[4]))
+def num_collisions(cursor, table_name): # i want to change this to take a connection and a table name
+    cursor.execute(f"SELECT * FROM {table_name}")
+    data = cursor.fetchall()
+    length = len(data[4])
+    num_unique = len(np.unique(data[4]))
     return (length - num_unique)
-    
 
 ## MAIN CODE ##
 connection = sqlite3.connect('wyly_db')
@@ -52,9 +53,7 @@ connection = sqlite3.connect('wyly_db')
 c = connection.cursor()
 hash_sql_table(c, 'florida')
 
-# Print the number of collisions (LENGTH OF HASH COL of TABLE - LENGTH OF UNIQUE VALUES OF HASH COL)
-c.execute("SELECT * FROM florida")
-print("Collision Count: " + str(num_collisions(c.fetchall())))
+print("Collision Count: " + str(num_collisions(c, 'florida')))
 # commit changes to db
 connection.commit()
 connection.close()
