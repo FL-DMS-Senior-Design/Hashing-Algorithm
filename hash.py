@@ -10,16 +10,16 @@ def read_excel_to_sql(connection, table_name):
     print(df)
     df.to_sql(table_name, connection, if_exists="replace")
 
-def add_hash_key(c, table_name):
+def add_hash_key(cursor, table_name):
     # Now... can i clean, hash, and test this for collisions?
-    c.execute(f"""
+    cursor.execute(f"""
             ALTER TABLE {table_name}
             ADD COLUMN hash text
         """)
     
 # hashy hashy time
-def hash_sql_table(c, table_name):
-    c.execute(f'SELECT * FROM {table_name}')
+def hash_sql_table(cursor, table_name):
+    cursor.execute(f'SELECT * FROM {table_name}')
     rows = c.fetchall()
     hash_list = []
     for row in rows:
@@ -31,7 +31,7 @@ def hash_sql_table(c, table_name):
 
     # Update the "hash" column with values from hash_list
     for i, hash_value in enumerate(hash_list):
-        c.execute(f'UPDATE {table_name} SET hash = ? WHERE rowid = ?', (hash_value, i+1))
+        cursor.execute(f'UPDATE {table_name} SET hash = ? WHERE rowid = ?', (hash_value, i+1))
     print("Successfully hashed SQL table.")
 
 
